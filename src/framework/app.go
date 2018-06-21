@@ -2,7 +2,6 @@ package framework
 
 import (
 	"config"
-	"controller"
 	"framework/app"
 	"github.com/go-redis/redis"
 	"github.com/golang/net/websocket"

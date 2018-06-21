@@ -3,7 +3,6 @@ package router
 import (
 	"bytes"
 	"config"
-	"controller"
 	"encoding/json"
 	"github.com/go-redis/redis"
 	"github.com/labstack/echo"
@@ -12,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"CMDB/src/controller"
 	"CMDB/src/model"
 )
 
@@ -215,76 +215,76 @@ func PowerValid(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 // 日志中间件
-func AccessLog(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(ctx echo.Context) error {
-		admin := controller.GetInfo(ctx.Get("token").(string))
-		operationBean := new(model.OperationLog)
-		operationBean.OperationAccount = admin.Account          // 操作账号
-		operationBean.OperationId = admin.Id                    // 操作人id
-		operationBean.CreateTime = time.Now().Unix()            // 操作时间
-		operationBean.OperationPath = ctx.Request().URL.Path    // 请求路由
-		operationBean.OperationIp = StringIpToInt(ctx.RealIP()) // 请求Ip
-		method := ctx.Request().Method                          // 请求方法
-		if method == "GET" {
-			operationBean.OperationQuery = ctx.QueryParams().Encode()
-		} else {
-			ctype := ctx.Request().Header.Get("Content-Type")
-			switch {
-			case strings.HasPrefix(ctype, "application/json"):
-				data, err := ioutil.ReadAll(ctx.Request().Body)
-				operationBean.Remark = string(data)
-				if err != nil {
-					Glogger.Error(err.Error())
-					return next(ctx)
-				}
-				switch string(data) {
-				case "GET":
-					operationBean.OperationType = ROUTE_GET
-				case "POST":
-					operationBean.OperationType = ROUTE_POST
-				case "PUT":
-					operationBean.OperationType = ROUTE_PUT
-				case "DELETE":
-					operationBean.OperationType = ROUTE_DELETE
-				}
-				// 重新写进body
-				ctx.Request().Body = ioutil.NopCloser(bytes.NewReader(data))
-			case strings.HasPrefix(ctype, "application/x-www-form-urlencoded"),
-				strings.HasPrefix(ctype, "multipart/form-data"):
-				data, err := ctx.FormParams()
-				if err != nil {
-					Glogger.Error(err.Error())
-					return next(ctx)
-				}
-				switch data.Encode() {
-				case "GET":
-					operationBean.OperationType = ROUTE_GET
-				case "POST":
-					operationBean.OperationType = ROUTE_POST
-				case "PUT":
-					operationBean.OperationType = ROUTE_PUT
-				case "DELETE":
-					operationBean.OperationType = ROUTE_DELETE
-				}
-			default:
-				operationBean.OperationType = 0
-			}
-		}
-		switch method {
-		case "POST": // 增加
-			operationBean.OperationType = 2
-		case "DELETE": // 删除
-			operationBean.OperationType = 4
-		case "GET": // 查看
-			operationBean.OperationType = 1
-		default: // 修改
-			operationBean.OperationType = 3
-		}
-		_, err := GetMaster().InsertOne(operationBean)
-		if err != nil {
-			Glogger.Error(err.Error())
-			return next(ctx)
-		}
-		return next(ctx)
-	}
-}
+//func AccessLog(next echo.HandlerFunc) echo.HandlerFunc {
+//	return func(ctx echo.Context) error {
+//		admin := controller.GetInfo(ctx.Get("token").(string))
+//		operationBean := new(model.OperationLog)
+//		operationBean.OperationAccount = admin.Account          // 操作账号
+//		operationBean.OperationId = admin.Id                    // 操作人id
+//		operationBean.CreateTime = time.Now().Unix()            // 操作时间
+//		operationBean.OperationPath = ctx.Request().URL.Path    // 请求路由
+//		operationBean.OperationIp = StringIpToInt(ctx.RealIP()) // 请求Ip
+//		method := ctx.Request().Method                          // 请求方法
+//		if method == "GET" {
+//			operationBean.OperationQuery = ctx.QueryParams().Encode()
+//		} else {
+//			ctype := ctx.Request().Header.Get("Content-Type")
+//			switch {
+//			case strings.HasPrefix(ctype, "application/json"):
+//				data, err := ioutil.ReadAll(ctx.Request().Body)
+//				operationBean.Remark = string(data)
+//				if err != nil {
+//					Glogger.Error(err.Error())
+//					return next(ctx)
+//				}
+//				switch string(data) {
+//				case "GET":
+//					operationBean.OperationType = ROUTE_GET
+//				case "POST":
+//					operationBean.OperationType = ROUTE_POST
+//				case "PUT":
+//					operationBean.OperationType = ROUTE_PUT
+//				case "DELETE":
+//					operationBean.OperationType = ROUTE_DELETE
+//				}
+//				// 重新写进body
+//				ctx.Request().Body = ioutil.NopCloser(bytes.NewReader(data))
+//			case strings.HasPrefix(ctype, "application/x-www-form-urlencoded"),
+//				strings.HasPrefix(ctype, "multipart/form-data"):
+//				data, err := ctx.FormParams()
+//				if err != nil {
+//					Glogger.Error(err.Error())
+//					return next(ctx)
+//				}
+//				switch data.Encode() {
+//				case "GET":
+//					operationBean.OperationType = ROUTE_GET
+//				case "POST":
+//					operationBean.OperationType = ROUTE_POST
+//				case "PUT":
+//					operationBean.OperationType = ROUTE_PUT
+//				case "DELETE":
+//					operationBean.OperationType = ROUTE_DELETE
+//				}
+//			default:
+//				operationBean.OperationType = 0
+//			}
+//		}
+//		switch method {
+//		case "POST": // 增加
+//			operationBean.OperationType = 2
+//		case "DELETE": // 删除
+//			operationBean.OperationType = 4
+//		case "GET": // 查看
+//			operationBean.OperationType = 1
+//		default: // 修改
+//			operationBean.OperationType = 3
+//		}
+//		_, err := GetMaster().InsertOne(operationBean)
+//		if err != nil {
+//			Glogger.Error(err.Error())
+//			return next(ctx)
+//		}
+//		return next(ctx)
+//	}
+//}
