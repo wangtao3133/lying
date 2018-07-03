@@ -5,5 +5,4 @@ import (
 )
 
 func Route(c *echo.Echo) {
-
 }
